@@ -2,8 +2,19 @@ const express = require("express");
 const router = express.Router();
 const Author = require("../models/author");
 
-router.get("/", (req, res) => {
-  res.render("authors/index");
+router.get("/", async (req, res) => {
+  let searchOptions = {};
+
+  // if it's an empty string we don't filter by name, so we retrieve all of the names
+  if (req.query.name != null && req.query.name !== "") {
+    searchOptions.name = new RegExp(req.query.name, "i"); // case insensitive
+  }
+  try {
+    const authors = await Author.find(searchOptions);
+    res.render("authors/index", { authors: authors, searchOptions: req.query }); // sending back the query to repopulate the users
+  } catch (error) {
+    res.redirect("/");
+  }
 });
 
 router.get("/new", (req, res) => {
